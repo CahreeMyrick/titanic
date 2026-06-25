@@ -1,0 +1,52 @@
+experiment:
+  name: v1
+
+outputs_dir: sols
+
+dataset:
+  path: data
+
+  preprocessing:
+    drop_columnns: [PassengerId, Name, Ticket, Cabin]
+
+    transform_columns:
+      numerical: [Pclass, Age, SibSp, Parch, Fare]
+      categorical: [Sex, Embark]
+
+    encode_columns:
+      categorical: [Sex, Embark]
+
+    standardize_columns:
+      numerical: [Pclass, Age, Sibsp, Parch, Fare]
+
+models:
+  logistic_regression:
+    params:
+      C: 1.0
+      max_iter: 1000
+      random_state: 42
+
+  svm:
+    params:
+      kernal: rbf
+      C: 1.0
+      gamma: scale
+      probability: false
+
+  random_forest:
+    params:
+      kernal: rbf
+      n_estimators: 200
+      max_depth: 10
+      random_state: 42
+
+  xgboost:
+    params:
+      n_estimators: 500
+      learning_rate: .05
+      max_depth: 6
+
+outputs:
+  save_models: false
+  save_prediction: true
+
