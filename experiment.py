@@ -15,11 +15,7 @@ from sklearn.svm import SVC
 
 from preprocess import build_preprocessor, drop_columns
 
-
-try:
-    from xgboost import XGBClassifier
-except ImportError:
-    XGBClassifier = None
+from xgboost import XGBClassifier
 
 
 MODEL_REGISTRY = {
