@@ -16,6 +16,7 @@ preprocessing:
     - Name
     - Ticket
     - Cabin
+    - Surname
 
   numerical:
     - Pclass
@@ -23,10 +24,25 @@ preprocessing:
     - SibSp
     - Parch
     - Fare
+    - FamilySize
+    - IsAlone
+    - TicketGroupSize
+    - HasCabin
+    - FareLog
+    - FemaleFirstClass
+    - Child
+    - Mother
+    - FarePerPerson
 
   categorical:
     - Sex
     - Embarked
+    - FamilyGroup
+    - Title
+    - TicketPrefix
+    - Deck
+    - AgeBin
+    - FareBin
 
   impute:
     numerical: median
@@ -37,6 +53,26 @@ preprocessing:
 
   encode:
     enabled: true
+
+  engineer_features:
+    enabled: true
+    features:
+      - fill_embarked
+      - fill_fare
+      - fill_age_by_group
+      - add_family_size
+      - add_is_alone
+      - add_family_group
+      - add_title
+      - add_surname
+      - add_ticket_prefix
+      - add_ticket_group_size
+      - add_has_cabin
+      - add_deck
+      - add_fare_log
+      - add_age_bin
+      - add_fare_bin
+      - add_interactions
 
 models:
   logistic_regression:
