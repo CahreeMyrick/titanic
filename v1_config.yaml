@@ -1,6 +1,6 @@
 experiment:
   name: v1
-  active_model: xgboost
+  active_model: logistic_regression
   mode: all
   target: Survived
   id_column: PassengerId
