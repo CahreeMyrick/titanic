@@ -1,23 +1,42 @@
 experiment:
   name: v1
+  active_model: xgboost
+  mode: all
+  target: Survived
+  id_column: PassengerId
+  random_state: 42
 
-outputs_dir: sols
+paths:
+  train_data: data/train.csv
+  test_data: data/test.csv
+  outputs_dir: sols
 
-dataset:
-  path: data
+preprocessing:
+  drop_columns:
+    - Name
+    - Ticket
+    - Cabin
 
-  preprocessing:
-    drop_columnns: [PassengerId, Name, Ticket, Cabin]
+  numerical:
+    - Pclass
+    - Age
+    - SibSp
+    - Parch
+    - Fare
 
-    transform_columns:
-      numerical: [Pclass, Age, SibSp, Parch, Fare]
-      categorical: [Sex, Embark]
+  categorical:
+    - Sex
+    - Embarked
 
-    encode_columns:
-      categorical: [Sex, Embark]
+  impute:
+    numerical: median
+    categorical: most_frequent
 
-    standardize_columns:
-      numerical: [Pclass, Age, Sibsp, Parch, Fare]
+  scale:
+    enabled: true
+
+  encode:
+    enabled: true
 
 models:
   logistic_regression:
@@ -28,14 +47,13 @@ models:
 
   svm:
     params:
-      kernal: rbf
+      kernel: rbf
       C: 1.0
       gamma: scale
       probability: false
 
   random_forest:
     params:
-      kernal: rbf
       n_estimators: 200
       max_depth: 10
       random_state: 42
@@ -43,10 +61,15 @@ models:
   xgboost:
     params:
       n_estimators: 500
-      learning_rate: .05
+      learning_rate: 0.05
       max_depth: 6
+      random_state: 42
+      eval_metric: logloss
+
+training:
+  test_size: 0.2
+  stratify: true
 
 outputs:
-  save_models: false
-  save_prediction: true
-
+  save_model: false
+  save_predictions: true
