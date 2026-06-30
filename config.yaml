@@ -1,7 +1,7 @@
 experiment:
-  name: v4
+  name: v5_ensemble
   active_model: xgboost
-  mode: all
+  mode: single
   target: Survived
   id_column: PassengerId
   random_state: 42
@@ -129,7 +129,7 @@ training:
     scoring: accuracy
 
   hyperparameter_search:
-    enabled: true
+    enabled: false
     method: grid
     folds: 5
     scoring: accuracy
@@ -150,3 +150,20 @@ outputs:
   hyperparameter_search:
     save: true
     print: true
+
+ensemble:
+  enabled: true
+
+  voting:
+    enabled: true
+    type: soft
+    models:
+      - logistic_regression
+      - random_forest
+      - xgboost
+
+  stacking:
+    enabled: false
+
+  bagging:
+    enabled: false
