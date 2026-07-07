@@ -3,3 +3,8 @@ __pycache__/
 .venv/
 env/
 .ipynb_checkpoints
+data/
+*.csv
+sols/
+outputs/
+*.ipynb

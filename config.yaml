@@ -1,0 +1,111 @@
+experiment:
+  name: v1
+  active_model: xgboost
+  mode: all
+  target: Survived
+  id_column: PassengerId
+  random_state: 42
+
+paths:
+  train_data: data/train.csv
+  test_data: data/test.csv
+  outputs_dir: sols
+
+preprocessing:
+  drop_columns:
+    - Name
+    - Ticket
+    - Cabin
+    - Surname
+
+  numerical:
+    - Pclass
+    - Age
+    - SibSp
+    - Parch
+    - Fare
+    - FamilySize
+    - IsAlone
+    - TicketGroupSize
+    - HasCabin
+    - FareLog
+    - FemaleFirstClass
+    - Child
+    - Mother
+    - FarePerPerson
+
+  categorical:
+    - Sex
+    - Embarked
+    - FamilyGroup
+    - Title
+    - TicketPrefix
+    - Deck
+    - AgeBin
+    - FareBin
+
+  impute:
+    numerical: median
+    categorical: most_frequent
+
+  scale:
+    enabled: true
+
+  encode:
+    enabled: true
+
+  engineer_features:
+    enabled: true
+    features:
+      - fill_embarked
+      - fill_fare
+      - fill_age_by_group
+      - add_family_size
+      - add_is_alone
+      - add_family_group
+      - add_title
+      - add_surname
+      - add_ticket_prefix
+      - add_ticket_group_size
+      - add_has_cabin
+      - add_deck
+      - add_fare_log
+      - add_age_bin
+      - add_fare_bin
+      - add_interactions
+
+models:
+  logistic_regression:
+    params:
+      C: 1.0
+      max_iter: 1000
+      random_state: 42
+
+  svm:
+    params:
+      kernel: rbf
+      C: 1.0
+      gamma: scale
+      probability: false
+
+  random_forest:
+    params:
+      n_estimators: 200
+      max_depth: 10
+      random_state: 42
+
+  xgboost:
+    params:
+      n_estimators: 500
+      learning_rate: 0.05
+      max_depth: 6
+      random_state: 42
+      eval_metric: logloss
+
+training:
+  test_size: 0.2
+  stratify: true
+
+outputs:
+  save_model: false
+  save_predictions: true
