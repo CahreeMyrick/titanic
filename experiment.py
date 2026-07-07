@@ -7,7 +7,7 @@ import numpy as np
 from pathlib import Path
 from typing import Any
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold,  GridSearchCV, RandomizedSearchCV
@@ -53,6 +53,40 @@ class Experiment:
 
         self.search_dir.mkdir(parents=True, exist_ok=True)
 
+    def make_ensemble(self) -> Pipeline:
+        ensemble_cfg = self.cfg.get("ensemble", {})
+        voting_cfg = ensemble_cfg.get("voting", {})
+
+        if not voting_cfg.get("enabled", False):
+            raise ValueError("Voting ensemble is disabled.")
+
+        model_names = voting_cfg.get("models", [])
+        voting_type = voting_cfg.get("type", "soft")
+
+        estimators = []
+
+        for model_name in model_names:
+            estimators.append(
+                (
+                    model_name,
+                    self.make_model(model_name),
+                )
+            )
+
+        voting_model = VotingClassifier(
+            estimators=estimators,
+            voting=voting_type,
+        )
+
+        preprocessor = build_preprocessor(self.cfg)
+
+        return Pipeline(
+            steps=[
+                ("preprocessor", preprocessor),
+                ("model", voting_model),
+            ]
+        )
+
     def make_model(self, model_name: str):
         if model_name not in MODEL_REGISTRY:
             raise ValueError(f"Unknown model: {model_name}")
@@ -63,6 +97,9 @@ class Experiment:
         return model_class(**params)
 
     def make_pipeline(self, model_name: str) -> Pipeline:
+        if model_name == "ensemble":
+            return self.make_ensemble()
+
         preprocessor = build_preprocessor(self.cfg)
         model = self.make_model(model_name)
 
@@ -74,6 +111,9 @@ class Experiment:
          )
 
     def get_model_names(self) -> list[str]:
+        if self.cfg.get("ensemble", {}).get("enabled", False):
+            return ["ensemble"]
+
         if self.mode == "all":
             return list(self.cfg["models"].keys())
 
@@ -162,7 +202,7 @@ class Experiment:
 
         search_cfg = self.cfg["training"].get("hyperparameter_search", {})
 
-        if search_cfg.get("enabled", False):
+        if model_name != "ensemble" and search_cfg.get("enabled", False):
             return self.run_hyperparameter_search(model_name, X, y)
 
         cv_cfg = self.cfg["training"].get("cross_validation", {})
@@ -186,10 +226,12 @@ class Experiment:
                 y,
                 cv=cv,
                 scoring=scoring,
+                n_jobs=-1,
             )
 
-            if self.cfg["outputs"].get("cross_validation", {}).get("print", True):
+            cv_output_cfg = self.cfg["outputs"].get("cross_validation", {})
 
+            if cv_output_cfg.get("save", False):
                 self.save_cv_results(
                     model_name=model_name,
                     scores=scores,
@@ -197,16 +239,17 @@ class Experiment:
                     folds=folds,
                 )
 
-            print()
-            print("=" * 60)
-            print(f"Experiment: {self.name}")
-            print(f"Model: {model_name}")
-            print("=" * 60)
-            print()
-            print(f"Cross Validation ({folds}-fold, scoring={scoring}):")
-            print(f"Scores: {scores}")
-            print(f"Mean: {scores.mean():.4f}")
-            print(f"Std:  {scores.std():.4f}")
+            if cv_output_cfg.get("print", True):
+                print()
+                print("=" * 60)
+                print(f"Experiment: {self.name}")
+                print(f"Model: {model_name}")
+                print("=" * 60)
+                print()
+                print(f"Cross Validation ({folds}-fold, scoring={scoring}):")
+                print(f"Scores: {scores}")
+                print(f"Mean: {scores.mean():.4f}")
+                print(f"Std:  {scores.std():.4f}")
 
         else:
             test_size = self.cfg["training"].get("test_size", 0.2)
@@ -235,7 +278,9 @@ class Experiment:
             print(f"Model: {model_name}")
             print("=" * 60)
 
-            if self.cfg["outputs"].get("evaluation", {}).get("print", True):
+            eval_output_cfg = self.cfg["outputs"].get("evaluation", {})
+
+            if eval_output_cfg.get("print", True):
                 print()
                 print("Validation Accuracy:")
                 print(accuracy)
@@ -244,11 +289,12 @@ class Experiment:
                 print("Classification Report:")
                 print(report)
 
-            self.save_evaluation(
-                model_name=model_name,
-                accuracy=accuracy,
-                report=report,
-            )
+            if eval_output_cfg.get("save", False):
+                self.save_evaluation(
+                    model_name=model_name,
+                    accuracy=accuracy,
+                    report=report,
+                )
 
         pipeline.fit(X, y)
 

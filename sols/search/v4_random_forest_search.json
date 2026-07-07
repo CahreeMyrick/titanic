@@ -1,0 +1,10 @@
+{
+    "experiment": "v4",
+    "model": "random_forest",
+    "best_score": 0.8361245370660976,
+    "best_params": {
+        "model__max_depth": null,
+        "model__min_samples_split": 10,
+        "model__n_estimators": 200
+    }
+}
