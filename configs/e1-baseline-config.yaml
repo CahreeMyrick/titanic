@@ -1,0 +1,132 @@
+experiment:
+  name: e1_baseline
+  active_model: logistic_regression
+  mode: all
+  target: Survived
+  id_column: PassengerId
+  random_state: 42
+
+paths:
+  train_data: data/train.csv
+  test_data: data/test.csv
+  outputs_dir: sols/e1_baseline
+
+preprocessing:
+  drop_columns:
+    - Name
+    - Ticket
+    - Cabin
+
+  numerical:
+    - Pclass
+    - Age
+    - SibSp
+    - Parch
+    - Fare
+
+  categorical:
+    - Sex
+    - Embarked
+
+  impute:
+    numerical: median
+    categorical: most_frequent
+
+  scale:
+    enabled: true
+
+  encode:
+    enabled: true
+
+  engineer_features:
+    enabled: false
+    features: []
+
+models:
+  logistic_regression:
+    params:
+      C: 1.0
+      max_iter: 1000
+      random_state: 42
+    search_params:
+      model__C: [0.01, 0.1, 1.0, 10.0]
+      model__solver: [liblinear, lbfgs]
+
+  svm:
+    params:
+      kernel: rbf
+      C: 1.0
+      gamma: scale
+      probability: false
+    search_params:
+      model__C: [0.1, 1.0, 10.0]
+      model__kernel: [linear, rbf]
+      model__gamma: [scale, auto]
+
+  random_forest:
+    params:
+      n_estimators: 100
+      max_depth: null
+      random_state: 42
+    search_params:
+      model__n_estimators: [100, 200, 500]
+      model__max_depth: [5, 10, null]
+      model__min_samples_split: [2, 5, 10]
+
+  xgboost:
+    params:
+      n_estimators: 100
+      learning_rate: 0.1
+      max_depth: 3
+      random_state: 42
+      eval_metric: logloss
+    search_params:
+      model__n_estimators: [100, 300, 500]
+      model__learning_rate: [0.01, 0.05, 0.1]
+      model__max_depth: [3, 5, 7]
+
+training:
+  test_size: 0.2
+  stratify: true
+
+  cross_validation:
+    enabled: false
+    folds: 5
+    scoring: accuracy
+
+  hyperparameter_search:
+    enabled: false
+    method: grid
+    folds: 5
+    scoring: accuracy
+    n_iter: 20
+
+outputs:
+  save_model: false
+  save_predictions: true
+
+  evaluation:
+    save: true
+    print: true
+
+  cross_validation:
+    save: false
+    print: false
+
+  hyperparameter_search:
+    save: false
+    print: false
+
+ensemble:
+  enabled: false
+
+  voting:
+    enabled: false
+    type: soft
+    models: []
+
+  stacking:
+    enabled: false
+
+  bagging:
+    enabled: false

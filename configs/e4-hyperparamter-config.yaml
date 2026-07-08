@@ -1,0 +1,167 @@
+experiment:
+  name: e4_hyperparameter_search
+  active_model: xgboost
+  mode: all 
+  target: Survived
+  id_column: PassengerId
+  random_state: 42
+
+paths:
+  train_data: data/train.csv
+  test_data: data/test.csv
+  outputs_dir: sols/e4_hyperparameter_search
+
+preprocessing:
+  drop_columns:
+    - Name
+    - Ticket
+    - Cabin
+    - Surname
+
+  numerical:
+    - Pclass
+    - Age
+    - SibSp
+    - Parch
+    - Fare
+    - FamilySize
+    - IsAlone
+    - TicketGroupSize
+    - HasCabin
+    - FareLog
+    - FemaleFirstClass
+    - Child
+    - Mother
+    - FarePerPerson
+
+  categorical:
+    - Sex
+    - Embarked
+    - FamilyGroup
+    - Title
+    - TicketPrefix
+    - Deck
+    - AgeBin
+    - FareBin
+
+  impute:
+    numerical: median
+    categorical: most_frequent
+
+  scale:
+    enabled: true
+
+  encode:
+    enabled: true
+
+  engineer_features:
+    enabled: true
+    features:
+      - fill_embarked
+      - fill_fare
+      - fill_age_by_group
+      - add_family_size
+      - add_is_alone
+      - add_family_group
+      - add_title
+      - add_surname
+      - add_ticket_prefix
+      - add_ticket_group_size
+      - add_has_cabin
+      - add_deck
+      - add_fare_log
+      - add_age_bin
+      - add_fare_bin
+      - add_interactions
+
+models:
+  logistic_regression:
+    params:
+      C: 1.0
+      max_iter: 1000
+      random_state: 42
+    search_params:
+      model__C: [0.01, 0.1, 1.0, 10.0]
+      model__solver: [liblinear, lbfgs]
+
+  svm:
+    params:
+      kernel: rbf
+      C: 1.0
+      gamma: scale
+      probability: true
+    search_params:
+      model__C: [0.1, 1.0, 10.0]
+      model__kernel: [linear, rbf]
+      model__gamma: [scale, auto]
+
+  random_forest:
+    params:
+      n_estimators: 200
+      max_depth: 10
+      random_state: 42
+    search_params:
+      model__n_estimators: [100, 200, 500]
+      model__max_depth: [5, 10, null]
+      model__min_samples_split: [2, 5, 10]
+      model__min_samples_leaf: [1, 2, 4]
+
+  xgboost:
+    params:
+      n_estimators: 500
+      learning_rate: 0.05
+      max_depth: 6
+      random_state: 42
+      eval_metric: logloss
+    search_params:
+      model__n_estimators: [100, 300, 500]
+      model__learning_rate: [0.01, 0.05, 0.1]
+      model__max_depth: [3, 5, 7]
+      model__subsample: [0.8, 1.0]
+      model__colsample_bytree: [0.8, 1.0]
+
+training:
+  test_size: 0.2
+  stratify: true
+
+  cross_validation:
+    enabled: true
+    folds: 5
+    scoring: accuracy
+
+  hyperparameter_search:
+    enabled: true
+    method: grid
+    folds: 5
+    scoring: accuracy
+    n_iter: 20
+
+outputs:
+  save_model: true
+  save_predictions: true
+
+  evaluation:
+    save: true
+    print: true
+
+  cross_validation:
+    save: true
+    print: true
+
+  hyperparameter_search:
+    save: true
+    print: true
+
+ensemble:
+  enabled: false
+
+  voting:
+    enabled: false
+    type: soft
+    models: []
+
+  stacking:
+    enabled: false
+
+  bagging:
+    enabled: false
