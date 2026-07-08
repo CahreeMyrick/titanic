@@ -1,9 +1,0 @@
-{
-    "experiment": "v4",
-    "model": "logistic_regression",
-    "best_score": 0.832772581758835,
-    "best_params": {
-        "model__C": 1.0,
-        "model__solver": "liblinear"
-    }
-}
