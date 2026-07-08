@@ -5,6 +5,5 @@ env/
 .ipynb_checkpoints
 data/
 *.csv
-sols/
 outputs/
 *.ipynb
