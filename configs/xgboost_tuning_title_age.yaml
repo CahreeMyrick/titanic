@@ -1,0 +1,157 @@
+experiment:
+  name: xgboost_tuning_title_age
+  active_model: xgboost
+  mode: single
+  target: Survived
+  id_column: PassengerId
+  random_state: 42
+
+paths:
+  train_data: data/train.csv
+  test_data: data/test.csv
+  outputs_dir: sols/xgboost_tuning_title_age
+
+preprocessing:
+  drop_columns:
+    - Name
+    - Ticket
+    - Cabin
+
+  numerical:
+    - Age
+    - SibSp
+    - Parch
+    - Fare
+
+  boolean: []
+
+  categorical:
+    - Pclass
+    - Sex
+    - Embarked
+    - Title
+
+  impute:
+    numerical: median
+    categorical: most_frequent
+
+  scale:
+    enabled: true
+
+  encode:
+    enabled: true
+
+  engineer_features:
+    enabled: true
+    features:
+      - add_title
+      - fill_embarked
+      - fill_fare
+      - fill_age_by_title_class
+
+models:
+  xgboost:
+    params:
+      objective: binary:logistic
+      eval_metric: logloss
+      tree_method: hist
+      random_state: 42
+      n_jobs: 1
+      verbosity: 0
+
+    search_params:
+      model__n_estimators:
+        - 100
+        - 200
+        - 300
+        - 500
+
+      model__learning_rate:
+        - 0.01
+        - 0.03
+        - 0.05
+        - 0.1
+
+      model__max_depth:
+        - 2
+        - 3
+        - 4
+        - 5
+
+      model__min_child_weight:
+        - 1
+        - 2
+        - 4
+
+      model__subsample:
+        - 0.7
+        - 0.8
+        - 1.0
+
+      model__colsample_bytree:
+        - 0.7
+        - 0.8
+        - 1.0
+
+      model__gamma:
+        - 0.0
+        - 0.1
+        - 0.3
+
+      model__reg_alpha:
+        - 0.0
+        - 0.01
+        - 0.1
+
+      model__reg_lambda:
+        - 0.5
+        - 1.0
+        - 2.0
+        - 5.0
+
+training:
+  test_size: 0.2
+  stratify: true
+
+  cross_validation:
+    enabled: false
+    folds: 5
+    scoring: accuracy
+
+  hyperparameter_search:
+    enabled: true
+    method: random
+    folds: 5
+    scoring: accuracy
+    n_iter: 75
+    save: true
+
+outputs:
+  save_model: true
+  save_predictions: true
+
+  evaluation:
+    save: false
+    print: false
+
+  cross_validation:
+    save: false
+    print: false
+
+  hyperparameter_search:
+    save: true
+    print: true
+
+ensemble:
+  enabled: false
+
+  voting:
+    enabled: false
+    type: soft
+    models: []
+
+  stacking:
+    enabled: false
+
+  bagging:
+    enabled: false
